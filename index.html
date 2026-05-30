@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>수리 키트 계산기</title>
+
+<style>
+body {
+    font-family: Arial;
+    background: #111;
+    color: #eee;
+    padding: 30px;
+}
+
+.container {
+    max-width: 800px;
+    margin: auto;
+}
+
+.row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    font-size: 14px;
+}
+
+.label {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin-bottom: 5px;
+}
+
+.label img {
+    width: 16px;
+    height: 16px;
+}
+
+input {
+    padding: 6px;
+    text-align: center;
+    background: #222;
+    border: 1px solid #444;
+    color: white;
+    border-radius: 5px;
+}
+
+button {
+    width: 100%;
+    padding: 10px;
+    background: #3b82f6;
+    border: none;
+    color: white;
+    cursor: pointer;
+    border-radius: 5px;
+}
+
+.result {
+    margin-top: 20px;
+    background: #000;
+    padding: 15px;
+    border-radius: 5px;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+/* 색상 */
+.core { color: #3b82f6; }
+.scrap { color: #c4a484; }
+.fuel { color: #b91c1c; }
+.titanium { color: #38bdf8; }
+.aurora { color: #c084fc; }
+
+/* 결과 강조 */
+.big-title {
+    font-size: 18px;
+}
+
+.big-number {
+    font-size: 30px;
+    font-weight: bold;
+}
+
+.combo {
+    margin-top: 8px;
+    font-size: 15px;
+}
+</style>
+<style>
+.footer {
+    position: fixed;
+    bottom: 10px;
+    left: 0;
+    width: 100%;
+    text-align: center;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.3); /* 살짝 투명 */
+    pointer-events: none; /* 클릭 방해 안함 */
+}
+</style>
+</head>
+<div class="footer">
+    Made by busi
+</div>
+<body>
+
+<div class="container">
+
+<h2>🔧 수리 키트 계산기</h2>
+
+<div class="row">
+
+<div class="item">
+<div class="label"><img src="img/icon1.png"><span class="scrap">심해의 고철</span></div>
+<input type="number" id="a" value="0">
+</div>
+
+<div class="item">
+<div class="label"><img src="img/icon2.png"><span class="aurora">심연의 오로라 파편</span></div>
+<input type="number" id="b" value="0">
+</div>
+
+<div class="item">
+<div class="label"><img src="img/icon3.png"><span class="titanium">영롱한 티타늄 광석</span></div>
+<input type="number" id="c" value="0">
+</div>
+
+<div class="item">
+<div class="label"><img src="img/icon4.png"><span class="fuel">해구의 화석 연료</span></div>
+<input type="number" id="d" value="0">
+</div>
+
+<div class="item">
+<div class="label"><img src="img/icon5.png"><span class="core">해저 열수구 코어</span></div>
+<input type="number" id="e" value="0">
+</div>
+
+</div>
+
+<button onclick="calc()">계산</button>
+
+<div class="result" id="out">결과가 여기에 표시됩니다</div>
+
+</div>
+
+<script>
+
+// 🔥 조합 + 최대값 같이 반환
+function maxKitDetail(a,b,c,d,e){
+    let max = 0;
+    let bestI = 0, bestJ = 0, bestK = 0;
+
+    for(let i=0;i<=Math.min(a,b,c);i++){
+        for(let j=0;j<=Math.min(a,b,d);j++){
+            for(let k=0;k<=Math.min(e,c,d);k++){
+
+                let useA=i+j;
+                let useB=i+j;
+                let useC=i+k;
+                let useD=j+k;
+                let useE=k;
+
+                if(useA<=a && useB<=b && useC<=c && useD<=d && useE<=e){
+                    let total = i+j+k;
+
+                    if(total > max){
+                        max = total;
+                        bestI = i;
+                        bestJ = j;
+                        bestK = k;
+                    }
+                }
+            }
+        }
+    }
+
+    return {max, bestI, bestJ, bestK};
+}
+
+// 🔥 순수 계산용 (구매/교환용)
+function maxKit(a,b,c,d,e){
+    return maxKitDetail(a,b,c,d,e).max;
+}
+
+function calc(){
+
+    let a = +document.getElementById("a").value;
+    let b = +document.getElementById("b").value;
+    let c = +document.getElementById("c").value;
+    let d = +document.getElementById("d").value;
+    let e = +document.getElementById("e").value;
+
+    let result = maxKitDetail(a,b,c,d,e);
+    let base = result.max;
+    let i = result.bestI;
+    let j = result.bestJ;
+    let k = result.bestK;
+
+    // 🔥 남는 재료 계산
+    let remainA = a - (i + j);
+    let remainB = b - (i + j);
+    let remainC = c - (i + k);
+    let remainD = d - (j + k);
+    let remainE = e - k;
+
+    // 구매
+    let buyList = [];
+
+    let buyData = [
+        ['<span class="scrap">심해의 고철</span>', maxKit(a+1,b,c,d,e)-base],
+        ['<span class="aurora">심연의 오로라 파편</span>', maxKit(a,b+1,c,d,e)-base],
+        ['<span class="titanium">영롱한 티타늄 광석</span>', maxKit(a,b,c+1,d,e)-base],
+        ['<span class="fuel">해구의 화석 연료</span>', maxKit(a,b,c,d+1,e)-base],
+        ['<span class="core">해저 열수구 코어</span>', maxKit(a,b,c,d,e+1)-base],
+    ];
+
+    for(let item of buyData){
+        if(item[1] > 0){
+            buyList.push(`${item[0]} 1개 매입 → 키트 ${item[1]}개 더 제작 가능`);
+        }
+    }
+
+    // 교환
+    let tradeList = [];
+    let names = [
+        '<span class="scrap">심해의 고철</span>',
+        '<span class="aurora">심연의 오로라 파편</span>',
+        '<span class="titanium">영롱한 티타늄 광석</span>',
+        '<span class="fuel">해구의 화석 연료</span>',
+        '<span class="core">해저 열수구 코어</span>'
+    ];
+    let vals = [a,b,c,d,e];
+
+    for(let x=0;x<5;x++){
+        for(let y=0;y<5;y++){
+            if(x===y || vals[x]<=0) continue;
+
+            let temp=[a,b,c,d,e];
+            temp[x]--;
+            temp[y]++;
+
+            let gain = maxKit(...temp)-base;
+
+            if(gain > 0){
+                tradeList.push(`${names[x]} 1개 → ${names[y]} 1개 교환 시 / 키트 ${gain}개 더 제작 가능`);
+            }
+        }
+    }
+
+    let buyText = buyList.length ? buyList.join("<br>") : "추가 구매로 증가 없음";
+    let tradeText = tradeList.length ? tradeList.join("<br>") : "유의미한 교환 없음";
+    let remainText = [];
+
+    if(remainA > 0) remainText.push(`<span class="scrap">심해의 고철</span> ${remainA}개`);
+    if(remainB > 0) remainText.push(`<span class="aurora">심연의 오로라 파편</span> ${remainB}개`);
+    if(remainC > 0) remainText.push(`<span class="titanium">영롱한 티타늄 광석</span> ${remainC}개`);
+    if(remainD > 0) remainText.push(`<span class="fuel">해구의 화석 연료</span> ${remainD}개`);
+    if(remainE > 0) remainText.push(`<span class="core">해저 열수구 코어</span> ${remainE}개`);
+
+    let remainOutput = remainText.length ? remainText.join("<br>") : "남는 재료 없음";
+
+    document.getElementById("out").innerHTML =
+        `<div class="big-title">🔧 키트 제작 가능</div>
+         <div class="big-number">${base}개</div>
+
+         <div class="combo">
+         1번 제작: ${i}개 / 2번 제작: ${j}개 / 3번 제작: ${k}개
+         </div>
+        <div class="combo">
+            (제작대 기준 위에서 부터 1번)
+        <div><br>
+
+     [구매]<br>${buyText}<br><br>
+     [교환]<br>${tradeText}<br><br>
+
+     [남는 재료]<br>${remainOutput}`;
+}
+</script>
+
+</body>
+</html>
